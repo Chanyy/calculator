@@ -13,6 +13,8 @@ import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
 
+    Boolean lastButtonWasOperator = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -220,6 +222,7 @@ public class MainActivity extends AppCompatActivity {
         }
         else {
             numberTextView.setText(currentDisplay + numberPushed);
+            lastButtonWasOperator = false;
         }
     }
 
@@ -233,6 +236,11 @@ public class MainActivity extends AppCompatActivity {
 
     // Back Space
     void numberBack (TextView numberTextView) {
+
+        if (lastButtonWasOperator == true) {
+            lastButtonWasOperator = false;
+        }
+
         String currentDisplay = numberTextView.getText().toString();
         if (currentDisplay.length() > 1) {
             currentDisplay = currentDisplay.substring(0, currentDisplay.length()-1);
@@ -247,8 +255,12 @@ public class MainActivity extends AppCompatActivity {
 
     //puts addition or subtraction symbol on the screen
     void operatorPressed (String operatorPushed, TextView numberTextView){
-        String currentDisplay = numberTextView.getText().toString();
-        numberTextView.setText(currentDisplay + operatorPushed);
+        if (lastButtonWasOperator == false) {
+            String currentDisplay = numberTextView.getText().toString();
+            numberTextView.setText(currentDisplay + operatorPushed);
+            lastButtonWasOperator = true;
+        }
+
     }
 
     // Delayed Button Color
