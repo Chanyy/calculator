@@ -190,15 +190,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 delayButton(buttonEquals);
-
-
+                equalsPressed(numberTextView);
             }
         });
     }
 
     // puts the number that was pressed on the screen
     void numberPressed (int numberPushed, TextView numberTextView){
-        //float currentDisplay = Float.valueOf(numberTextView.getText().toString());
         String currentDisplay = numberTextView.getText().toString();
         if (currentDisplay.length() == 10) {
             numberTextView.setTextSize(45);
@@ -232,6 +230,7 @@ public class MainActivity extends AppCompatActivity {
         delayTextView(numberTextView);
         numberTextView.setText( "");
         numberTextView.setTextSize(55);
+        lastButtonWasOperator = false;
     }
 
     // Back Space
@@ -260,6 +259,13 @@ public class MainActivity extends AppCompatActivity {
             numberTextView.setText(currentDisplay + operatorPushed);
             lastButtonWasOperator = true;
         }
+
+    }
+
+    // Equals Button
+    void equalsPressed (TextView numberTextView) {
+        String fullExpression = numberTextView.getText().toString();
+
 
     }
 
