@@ -1,20 +1,27 @@
 package com.calculator.chany.calculatortest;
 
+import android.content.res.Configuration;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
+import java.text.NumberFormat;
+import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
 
+    // Global Variables
+    Float firstNumber;
+    Float secondNumber;
+    String currentOperator;
     Boolean lastButtonWasOperator = false;
+    Boolean operatorPresent = false;
 
+    // Where the view starts to be created
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -195,21 +202,41 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // puts the number that was pressed on the screen
+    // puts the number that was pressed onto the screen
     void numberPressed (int numberPushed, TextView numberTextView){
         String currentDisplay = numberTextView.getText().toString();
-        if (currentDisplay.length() == 10) {
-            numberTextView.setTextSize(45);
+
+        // Portrait text size changes
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+            if (currentDisplay.length() == 10) {
+                numberTextView.setTextSize(45);
+            }
+            if (currentDisplay.length() == 12) {
+                numberTextView.setTextSize(35);
+            }
+            if (currentDisplay.length() == 15) {
+                numberTextView.setTextSize(30);
+            }
+            if (currentDisplay.length() == 18) {
+                numberTextView.setTextSize(25);
+            }
         }
-        if (currentDisplay.length() == 12) {
-            numberTextView.setTextSize(35);
+        else {
+            // Landscape text size changes
+            if (currentDisplay.length() == 17) {
+                numberTextView.setTextSize(45);
+            }
+            if (currentDisplay.length() == 21) {
+                numberTextView.setTextSize(35);
+            }
+            if (currentDisplay.length() == 27) {
+                numberTextView.setTextSize(30);
+            }
+            if (currentDisplay.length() == 31) {
+                numberTextView.setTextSize(25);
+            }
         }
-        if (currentDisplay.length() == 15) {
-            numberTextView.setTextSize(30);
-        }
-        if (currentDisplay.length() == 18) {
-            numberTextView.setTextSize(25);
-        }
+        // Gets rid of zero once you push a button
         if(currentDisplay.equals("0")) {
             currentDisplay = "";
         }
@@ -224,24 +251,37 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //resets screen to zero
+    //resets screen to zero and 55 text size once cleared
     void numberClear (TextView numberTextView){
         numberTextView.setBackground(getDrawable(R.drawable.clear_rectangle));
         delayTextView(numberTextView);
         numberTextView.setText( "");
         numberTextView.setTextSize(55);
         lastButtonWasOperator = false;
+        operatorPresent = false;
     }
 
-    // Back Space
+    // Backspace feature for clear key
     void numberBack (TextView numberTextView) {
 
         if (lastButtonWasOperator == true) {
             lastButtonWasOperator = false;
+            operatorPresent = false;
         }
 
         String currentDisplay = numberTextView.getText().toString();
         if (currentDisplay.length() > 1) {
+
+            char letterToBeRemoved = currentDisplay.charAt(currentDisplay.length() -1);
+            if (letterToBeRemoved == '+' || letterToBeRemoved == '-' || letterToBeRemoved == '\u00D7' || letterToBeRemoved == '\u00F7') {
+                operatorPresent = false;
+                lastButtonWasOperator = false;
+                currentOperator = null;
+            }
+            char oneLetterBack = currentDisplay.charAt(currentDisplay.length() -2);
+            if (oneLetterBack == '+' || oneLetterBack == '-' || oneLetterBack == '\u00D7' || oneLetterBack == '\u00F7') {
+                lastButtonWasOperator = true;
+            }
             currentDisplay = currentDisplay.substring(0, currentDisplay.length()-1);
             numberTextView.setText(currentDisplay);
         }
@@ -252,21 +292,81 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    //puts addition or subtraction symbol on the screen
+    //puts operation symbol on the screen
     void operatorPressed (String operatorPushed, TextView numberTextView){
-        if (lastButtonWasOperator == false) {
-            String currentDisplay = numberTextView.getText().toString();
-            numberTextView.setText(currentDisplay + operatorPushed);
-            lastButtonWasOperator = true;
-        }
+        // Checks to see if an operator is currently on screen.r
+        if (operatorPresent == false) {
+            if (lastButtonWasOperator == false) {
+                String currentDisplay = numberTextView.getText().toString();
 
+                currentOperator = operatorPushed;
+
+                // Adding operator to view
+                numberTextView.setText(currentDisplay + operatorPushed);
+                lastButtonWasOperator = true;
+                operatorPresent = true;
+            }
+        }
+        else {
+            // Finds the answer, and then adds the new operator to the screen.
+            if (lastButtonWasOperator == false) {
+
+                equalsPressed(numberTextView);
+                String currentDisplay = numberTextView.getText().toString();
+                numberTextView.setText(currentDisplay + operatorPushed);
+                // Set global variables.
+                lastButtonWasOperator = true;
+                operatorPresent = true;
+                currentOperator = operatorPushed;
+            }
+        }
     }
 
     // Equals Button
     void equalsPressed (TextView numberTextView) {
         String fullExpression = numberTextView.getText().toString();
 
+        // number without operator or second number crash fix
+        if (currentOperator != null ) {
+            Float answer;
 
+            // number and operator without second number crash fix
+            if (lastButtonWasOperator == false) {
+
+                //split view at operator
+                StringTokenizer tokens = new StringTokenizer(fullExpression, currentOperator);
+                firstNumber = Float.parseFloat(tokens.nextToken());
+                secondNumber = Float.parseFloat(tokens.nextToken());
+
+                // does math
+               if (currentOperator == "+") {
+                   answer = firstNumber + secondNumber;
+               }
+               else if (currentOperator == "-") {
+                   answer = firstNumber - secondNumber;
+               }
+               else if (currentOperator == "\u00D7") {
+                   answer = firstNumber * secondNumber;
+               }
+               else {
+                   answer = firstNumber / secondNumber;
+               }
+
+               // formats answer to get rid of decimals and adds commas
+               String finalAnswer = NumberFormat.getInstance().format(answer);
+
+                //displays the final answer
+                numberTextView.setText(finalAnswer);
+
+                // reset all global numbers
+                firstNumber = null;
+                secondNumber = null;
+                lastButtonWasOperator = false;
+                operatorPresent = false;
+                currentOperator = null;
+           }
+
+        }
     }
 
     // Delayed Button Color
@@ -285,7 +385,7 @@ public class MainActivity extends AppCompatActivity {
         }, 125);
     }
 
-    // Delayed TextView Color (Clear)
+    // Delayed TextView Color when cleared
     void delayTextView(final TextView numberTextView) {
         new Timer().schedule(new TimerTask() {
             @Override
